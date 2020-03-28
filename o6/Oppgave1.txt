@@ -1,0 +1,8 @@
+Optimistisk låsing er en metode for å forsikre seg om at data bli lagret riktig ved
+bruk av delt lagring som f.eks en database.
+I optimistisk låsing sjekker man kun rett før man skal sende alle opdaterte verdiene til databasen om timestamp er
+lik den man hadde når man leste data. Dersom disse stemmer kan man oppdatere databasen.
+Dersom timestamp ikke stemmer må man hente informasjonen på nytt og prøve igjen.
+Denne strategien fungerer best når det er fler leseopperasjoner en skriving.
+
+
