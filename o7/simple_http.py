@@ -17,16 +17,7 @@ def clients():
         clientsocket, address = s.accept()
         print(f"Connection from {address} has been established.")
 
-        content = "<!DOCTYPE html>" \
-                  "<HTML>" \
-                  "<body> " \
-                  "WebSocket test page " \
-                  "<script> let ws = new WebSocket('ws://localhost:3001'); " \
-                  "ws.onmessage = event => alert('Message from server: ' + event.data); " \
-                  "ws.onopen = () => ws.send('Hello from client!'); " \
-                  "</script> " \
-                  "</body>" \
-                  "</HTML>"
+        content = open("index.html", "r").read()
 
         clientsocket.send(
             bytes('HTTP/1.1 200 OK\nContent-Length: ' + str(len(content)) + '\n\n' + content, "utf-8"))
@@ -35,4 +26,4 @@ def clients():
 threads = []
 for i in range(5):
     threads.append(threading.Thread(target=clients))
-threads[i].start()
+    threads[i].start()

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket chat server</title>
+</head>
+<body>
+
+<h1>Welcome to the WebSocket chat server</h1>
+<input id="input" type="text">
+<button onclick="submit()">Submit</button>
+
+<p id="content"></p>
+
+
+</body>
+</html>
+
+<script>
+    let ws = new WebSocket('ws://localhost:3001');
+
+    function submit() {
+        ws.send(document.getElementById("input").value)
+    }
+
+    ws.onmessage = (event) => {
+        document.getElementById("content").innerHTML += "<br/>" + event.data
+    };
+</script>
+

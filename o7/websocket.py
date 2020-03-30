@@ -3,7 +3,6 @@ import threading
 from hashlib import sha1
 from base64 import b64encode
 
-
 PORT = 3001
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -24,8 +23,6 @@ def clients():
         header = data.decode("utf-8")
         key = get_websocket_key(header)
 
-        print("Handshake key: " + key)
-
         content = ("HTTP/1.1 101 Switching Protocols",
                    "Upgrade: websocket",
                    "Connection: Upgrade",
@@ -35,22 +32,32 @@ def clients():
         print("Response key: " + response_key)
         res = '\r\n'.join(content).format(key=response_key)
 
-        print("\n\n" + res + "\n\n")
         clientsocket.send(bytes(res, "utf-8"))
 
+        client_sockets.append(clientsocket)
+
         while True:
-            data = clientsocket.recv(1024)
-            data_bytes = bytearray(data)
-            #print(data)
+            try:
+                data = clientsocket.recv(1024)
+                data_bytes = bytearray(data)
 
-            if len(data_bytes) > 2 and data_bytes[0] == 129:
-                decoded_msg = decode_websocket_data(data)
-                print(f"Recieved new message from {address}: \nRAW data:{data}\nDecoded: {decoded_msg}")
-                # response = bytearray("hi there!", "ascii")
+                if len(data_bytes) > 2 and data_bytes[0] == 129:
+                    decoded_msg = decode_websocket_data(data)
+                    print(f"Recieved new message from {address}: \nRAW data:{data}\nDecoded: {decoded_msg}")
 
-                data = "Hello from server!"
+                    echo = f"{address[0]}, {address[1]}: " + decoded_msg
+                    echo_all(format_payload(echo))
+            except ConnectionResetError:
+                print(f"{address} disconnected")
+                break
 
-                clientsocket.send(format_payload(data))
+
+def echo_all(payload):
+    for client_socket in client_sockets:
+        try:
+            client_socket.send(payload)
+        except BrokenPipeError:
+            client_sockets.remove(client_socket)
 
 
 def get_websocket_key(header):
@@ -62,7 +69,7 @@ def get_websocket_key(header):
 
 def format_payload(data):
     data = bytearray(data.encode())
-    txt_code = 129  #0x81 in hex
+    txt_code = 129  # 0x81 in hex
     length = len(data)
     payload = [txt_code, length]
 
@@ -91,7 +98,8 @@ def accept_handshake(key):
     return str(response_key, "utf-8")
 
 
+client_sockets = []
 threads = []
 for i in range(5):
     threads.append(threading.Thread(target=clients))
-threads[i].start()
+    threads[i].start()
